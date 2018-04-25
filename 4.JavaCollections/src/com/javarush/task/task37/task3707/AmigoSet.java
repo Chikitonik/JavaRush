@@ -5,6 +5,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.*;
+/*это комментарий для тестирования GIT*/
 
 public class AmigoSet<E> extends AbstractSet implements Serializable, Cloneable, Set {
     private static final Object PRESENT = new Object();
