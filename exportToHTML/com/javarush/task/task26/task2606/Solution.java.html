@@ -1,0 +1,135 @@
+<html>
+<head>
+<title>Solution.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.ln { color: #999999; font-weight: normal; font-style: normal; }
+.s0 { color: rgb(0,0,128); font-weight: bold; }
+.s1 { color: rgb(0,0,0); }
+.s2 { color: rgb(128,128,128); font-style: italic; }
+.s3 { color: rgb(0,0,255); }
+.s4 { color: rgb(0,128,0); font-weight: bold; }
+</style>
+</head>
+<BODY BGCOLOR="#ffffff">
+<TABLE CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#c0c0c0" >
+<TR><TD><CENTER>
+<FONT FACE="Arial, Helvetica" COLOR="#000000">
+Solution.java</FONT>
+</center></TD></TR></TABLE>
+<pre>
+<span class="s0">package </span><span class="s1">com.javarush.task.task26.task2606; 
+ 
+</span><span class="s0">import </span><span class="s1">java.net.MalformedURLException; 
+</span><span class="s0">import </span><span class="s1">java.net.URL; 
+</span><span class="s0">import </span><span class="s1">java.util.*; 
+</span><span class="s0">import </span><span class="s1">java.util.concurrent.ExecutorService; 
+</span><span class="s0">import </span><span class="s1">java.util.concurrent.Executors; 
+</span><span class="s0">import </span><span class="s1">java.util.concurrent.TimeUnit; 
+ 
+</span><span class="s2">/*  
+Тот, кто любит труд, не нуждается в развлечениях 
+*/</span><span class="s1"> 
+</span><span class="s0">public class </span><span class="s1">Solution { 
+    </span><span class="s0">private final </span><span class="s1">URL javarushUrl; 
+    </span><span class="s0">private final </span><span class="s1">URL javarushUrl1Child; 
+    </span><span class="s0">private final </span><span class="s1">URL javarushVkGroupUrl; 
+    </span><span class="s0">private final </span><span class="s1">URL javarushVkGroupUrl1Child; 
+    </span><span class="s0">private final </span><span class="s1">URL javarushVkGroupUrl2Child; 
+    </span><span class="s0">private final </span><span class="s1">URL javarushVkGroupUrl3Child; 
+ 
+    </span><span class="s0">private </span><span class="s1">ExecutorService executorService; 
+    </span><span class="s0">private final </span><span class="s1">Set&lt;URL&gt; urlsForProcessing = Collections.synchronizedSet(</span><span class="s0">new </span><span class="s1">HashSet&lt;&gt;()); 
+ 
+    </span><span class="s0">public static void </span><span class="s1">main(String[] args) </span><span class="s0">throws </span><span class="s1">MalformedURLException, InterruptedException { 
+        Solution solution = </span><span class="s0">new </span><span class="s1">Solution(); 
+        solution.start(); 
+        Thread.sleep(</span><span class="s3">1000</span><span class="s1">); 
+        solution.stop(); 
+    } 
+ 
+    </span><span class="s0">public </span><span class="s1">Solution() </span><span class="s0">throws </span><span class="s1">MalformedURLException { 
+        javarushUrl = </span><span class="s0">new </span><span class="s1">URL(</span><span class="s4">&quot;http://javarush.ru/&quot;</span><span class="s1">); 
+        javarushVkGroupUrl = </span><span class="s0">new </span><span class="s1">URL(</span><span class="s4">&quot;http://vk.com/javarush&quot;</span><span class="s1">); 
+        javarushUrl1Child = </span><span class="s0">new </span><span class="s1">URL(</span><span class="s4">&quot;http://info.javarush.ru/page/FAQ/&quot;</span><span class="s1">); 
+        javarushVkGroupUrl1Child = </span><span class="s0">new </span><span class="s1">URL(</span><span class="s4">&quot;https://plus.google.com/114772402300089087607/about&quot;</span><span class="s1">); 
+        javarushVkGroupUrl2Child = </span><span class="s0">new </span><span class="s1">URL(</span><span class="s4">&quot;https://www.facebook.com/pages/Javarush/524321077686033&quot;</span><span class="s1">); 
+        javarushVkGroupUrl3Child = </span><span class="s0">new </span><span class="s1">URL(</span><span class="s4">&quot;https://twitter.com/javarush_ru&quot;</span><span class="s1">); 
+ 
+        urlsForProcessing.add(javarushUrl); 
+        urlsForProcessing.add(javarushVkGroupUrl); 
+    } 
+ 
+    </span><span class="s0">public synchronized void </span><span class="s1">start() { 
+        executorService = Executors.newCachedThreadPool(); 
+        </span><span class="s0">for </span><span class="s1">(URL url : urlsForProcessing) { 
+            submitUrlTask(url); 
+        } 
+        urlsForProcessing.clear(); 
+    } 
+ 
+    </span><span class="s0">public synchronized void </span><span class="s1">stop() </span><span class="s0">throws </span><span class="s1">InterruptedException { 
+        </span><span class="s0">try </span><span class="s1">{ 
+            saveUnprocessedUrls(executorService.shutdownNow()); 
+            </span><span class="s0">if </span><span class="s1">(executorService.awaitTermination(</span><span class="s3">1_000</span><span class="s1">, TimeUnit.MILLISECONDS)) { 
+                saveUnprocessedUrls(getCancelledTasksFromExecutor()); 
+            } 
+        } </span><span class="s0">finally </span><span class="s1">{ 
+            executorService = </span><span class="s0">null</span><span class="s1">; 
+        } 
+    } 
+ 
+    </span><span class="s0">private </span><span class="s1">List&lt;Runnable&gt; getCancelledTasksFromExecutor() { 
+        </span><span class="s0">return </span><span class="s1">Collections.EMPTY_LIST; 
+    } 
+ 
+    </span><span class="s0">protected </span><span class="s1">List&lt;URL&gt; processPage(URL url) { 
+        System.out.println(url + </span><span class="s4">&quot; will be processed&quot;</span><span class="s1">); 
+        </span><span class="s0">return </span><span class="s1">getChildUrlByParent(url); 
+    } 
+ 
+    </span><span class="s0">private </span><span class="s1">List&lt;URL&gt; getChildUrlByParent(URL url) { 
+        List&lt;URL&gt; result = </span><span class="s0">new </span><span class="s1">ArrayList&lt;&gt;(); 
+ 
+        </span><span class="s0">if </span><span class="s1">(javarushUrl.equals(url)) { 
+            result.add(javarushUrl1Child); 
+        } </span><span class="s0">else if </span><span class="s1">(javarushVkGroupUrl.equals(url)) { 
+            result.add(javarushVkGroupUrl1Child); 
+            result.add(javarushVkGroupUrl2Child); 
+            result.add(javarushVkGroupUrl3Child); 
+        } 
+        </span><span class="s0">return </span><span class="s1">result; 
+    } 
+ 
+    </span><span class="s0">private void </span><span class="s1">saveUnprocessedUrls(List&lt;Runnable&gt; unprocessed) { 
+        </span><span class="s0">for </span><span class="s1">(Runnable task : unprocessed) { 
+            urlsForProcessing.add(((UrlTask) task).getPage()); 
+        } 
+    } 
+ 
+    </span><span class="s0">private void </span><span class="s1">submitUrlTask(URL url) { 
+        executorService.execute(</span><span class="s0">new </span><span class="s1">UrlTask(url)); 
+    } 
+ 
+    </span><span class="s0">public class </span><span class="s1">UrlTask </span><span class="s0">implements </span><span class="s1">Runnable { 
+        </span><span class="s0">private final </span><span class="s1">URL url; 
+ 
+        </span><span class="s0">private </span><span class="s1">UrlTask(URL url) { 
+            </span><span class="s0">this</span><span class="s1">.url = url; 
+        } 
+ 
+        </span><span class="s0">public void </span><span class="s1">run() { 
+            </span><span class="s0">for </span><span class="s1">(URL link : processPage(url)) { 
+                </span><span class="s0">if </span><span class="s1">(Thread.currentThread().isInterrupted()) </span><span class="s0">return</span><span class="s1">; 
+                submitUrlTask(link); 
+            } 
+        } 
+ 
+        </span><span class="s0">public </span><span class="s1">URL getPage() { 
+            </span><span class="s0">return </span><span class="s1">url; 
+        } 
+    } 
+} 
+</span></pre>
+</body>
+</html>

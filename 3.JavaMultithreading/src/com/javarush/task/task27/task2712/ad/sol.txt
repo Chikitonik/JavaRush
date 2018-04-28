@@ -1,0 +1,71 @@
+package com.javarush.task.task27.task2712.ad;
+
+import com.javarush.task.task27.task2712.ConsoleHelper;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+public class AdvTest {
+    private final AdvertisementStorage storage = AdvertisementStorage.getInstance();
+    private int timeSeconds;
+    public AdvTest(int timeSeconds) {
+        this.timeSeconds = timeSeconds;
+    }
+    public void processVideos() {
+        List<Advertisement> vidos =  getVideos(timeSeconds, storage.list(), storage.list().size());
+        if (vidos == null || vidos.isEmpty())
+            throw new NoVideoAvailableException();
+        Collections.sort(vidos, new Comparator<Advertisement>() {
+            @Override
+            public int compare(Advertisement o1, Advertisement o2) {
+                return (int) ((o1.getAmountPerOneDisplaying() != o2.getAmountPerOneDisplaying()) ?
+                        o2.getAmountPerOneDisplaying() - o1.getAmountPerOneDisplaying() :
+                        o1.getAmountPerOneDisplaying() * 1000 / o1.getDuration() -
+                                o2.getAmountPerOneDisplaying() * 1000 / o2.getDuration());
+            }
+        });
+        for (Advertisement a : vidos) {
+            a.revalidate();
+            ConsoleHelper.writeMessage(a.getName() + " is displaying... " + a.getAmountPerOneDisplaying() + ", " +
+                    a.getAmountPerOneDisplaying() * 1000 / a.getDuration());
+        }
+    }
+    private List<Advertisement> getVideos(int timeSeconds, List<Advertisement> list, int sizeList) {
+        if (sizeList == 0 || timeSeconds == 0)
+            return null;
+        if (list.get(sizeList-1).getDuration() > timeSeconds || list.get(sizeList-1).getHits() <= 0)
+            return getVideos(timeSeconds, list, sizeList-1);
+        else {
+            List<Advertisement> list1 = new ArrayList<>();
+            list1.add(list.get(sizeList-1));/*в лист1 вносится одно удовлетворяющее видео*/
+            /*в темп лист вносится еще одно видео перед предыдущим, если оно устраивает*/
+            List<Advertisement> tempList = getVideos(timeSeconds - list.get(sizeList - 1).getDuration(), list, sizeList - 1);
+            if (tempList != null) list1.addAll(tempList);/*добавляем 2рое видео*/
+            List<Advertisement> list2 = getVideos(timeSeconds, list, sizeList - 1);
+            if (getTotalAmount(list1) == getTotalAmount(list2))
+                if (getTotalTime(list1) == getTotalTime(list2)) {
+                    return (list1.size() < (list2 != null ? list2.size() : Integer.MAX_VALUE)) ? list1 : list2;
+                } else
+                    return (getTotalTime(list1) > getTotalTime(list2)) ? list1 : list2;
+            else return (getTotalAmount(list1) > getTotalAmount(list2)) ? list1 : list2;
+        }
+    }
+    private long getTotalAmount(List<Advertisement> ad) {
+        long totalAmount = 0;
+        if (ad == null) return totalAmount;
+        for (Advertisement a : ad) {
+            totalAmount += a.getAmountPerOneDisplaying();
+        }
+        return totalAmount;
+    }
+    private int getTotalTime(List<Advertisement> ad) {
+        int totalTime = 0;
+        if (ad == null) return totalTime;
+        for (Advertisement a : ad) {
+            totalTime += a.getDuration();
+        }
+        return totalTime;
+    }
+}
